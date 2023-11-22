@@ -1,0 +1,20 @@
+MODULE Kernel;
+    IMPORT Fox32ROM, Allocator, Process, Syscall, VFS;
+
+    CONST BACKGROUND_COLOR = 0FF674764H;
+          TEXT_COLOR = 0FFFFFFFFH;
+
+    PROCEDURE Main();
+    BEGIN
+        FillBackground(BACKGROUND_COLOR);
+        DrawStrToBackground("kitsune", 16, 464, TEXT_COLOR, BACKGROUND_COLOR);
+
+        InitializeAllocator();
+        InstallSyscallHandler();
+        InitializeScheduler();
+
+        NewProcess("init.fxf", 0);
+
+        Scheduler();
+    END;
+END.

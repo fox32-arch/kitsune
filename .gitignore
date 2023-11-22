@@ -1,0 +1,13 @@
+
+**/.vscode/
+
+**/bootloader.bin
+**/*.fxf
+**/out.asm
+**/kitsune.img
+**/kitsune.img.tmp
+**/romdisk.img
+**/romdisk.img.tmp
+**/startup.cfg
+
+kernel/kernel.asm

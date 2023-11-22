@@ -1,0 +1,28 @@
+MODULE FXF;
+    CONST FXF_CODE_SIZE_OFFSET  = 004H;
+          FXF_CODE_PTR_OFFSET   = 008H;
+          FXF_RELOC_SIZE_OFFSET = 00CH;
+          FXF_RELOC_PTR_OFFSET  = 010H;
+
+    PROCEDURE RelocateFXF(codeBlockPtr: POINTER TO INT;): PTR;
+    VAR i: INT;
+        relocationAddress: PTR;
+        relocationEntries: INT;
+        relocationTablePtr: POINTER TO INT;
+        tempPtr: POINTER TO INT;
+    BEGIN
+        i := 0;
+        relocationAddress := codeBlockPtr[FXF_CODE_PTR_OFFSET / 4] + codeBlockPtr;
+        relocationEntries := codeBlockPtr[FXF_RELOC_SIZE_OFFSET / 4] / 4;
+        relocationTablePtr := codeBlockPtr[FXF_RELOC_PTR_OFFSET / 4] + codeBlockPtr;
+
+        IF relocationEntries = 0 THEN RETURN(relocationAddress); END;
+        WHILE i <| relocationEntries DO
+            tempPtr := relocationAddress + relocationTablePtr[i];
+            tempPtr^ := tempPtr^ + relocationAddress;
+            i := i + 1;
+        END;
+
+        RETURN(relocationAddress);
+    END;
+END.

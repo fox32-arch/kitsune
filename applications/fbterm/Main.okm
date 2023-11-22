@@ -1,0 +1,179 @@
+MODULE FbTerm;
+    IMPORT Kitsune, Fox32ROM;
+
+    CONST TERMINAL_WIDTH = 80;
+          TERMINAL_HEIGHT = 30;
+          DEFAULT_FOREGROUND_COLOR = 7;
+          DEFAULT_BACKGROUND_COLOR = 0;
+          MAX_ESC_CODE_PARAMETERS = 8;
+          COLORS = {
+              0FF2E1E1EH, (* black *)
+              0FFA88BF3H, (* red *)
+              0FFA1E3A6H, (* green *)
+              0FFAFE2F9H, (* yellow *)
+              0FFFAB489H, (* blue *)
+              0FFACA0EBH, (* magenta *)
+              0FFD5E294H, (* cyan *)
+              0FFF4D6CDH, (* white *)
+              000000000H, (* transparent *)
+          };
+
+    VAR running: CHAR;
+        shellProcessId: INT;
+
+        (* 80x30 *)
+        onScreenBufferPtr: POINTER TO ARRAY 2400 OF CHAR;
+        onScreenColorBufferForegroundPtr: POINTER TO ARRAY 2400 OF CHAR;
+        onScreenColorBufferBackgroundPtr: POINTER TO ARRAY 2400 OF CHAR;
+        updateBufferPtr: POINTER TO ARRAY 2400 OF CHAR;
+        updateColorBufferForegroundPtr: POINTER TO ARRAY 2400 OF CHAR;
+        updateColorBufferBackgroundPtr: POINTER TO ARRAY 2400 OF CHAR;
+
+        terminalX: INT;
+        terminalY: INT;
+
+    PROCEDURE Main();
+    BEGIN
+        onScreenBufferPtr := Allocate(2400);
+        onScreenColorBufferForegroundPtr := Allocate(2400);
+        onScreenColorBufferBackgroundPtr := Allocate(2400);
+        updateBufferPtr := Allocate(2400);
+        updateColorBufferForegroundPtr := Allocate(2400);
+        updateColorBufferBackgroundPtr := Allocate(2400);
+        terminalX := 0;
+        terminalY := 0;
+        running := 1;
+
+        PrintString("hello world!!!");
+        RedrawTerminal();
+
+        WHILE running DO
+            (* TODO: yeag *)
+            YieldProcess();
+        END;
+
+        Free(onScreenBufferPtr);
+        Free(onScreenColorBufferForegroundPtr);
+        Free(onScreenColorBufferBackgroundPtr);
+        Free(updateBufferPtr);
+        Free(updateColorBufferForegroundPtr);
+        Free(updateColorBufferBackgroundPtr);
+    END;
+
+    PROCEDURE RedrawTerminal();
+    VAR x: INT;
+        y: INT;
+        fg: INT;
+        bg: INT;
+        offset: INT;
+        updateBufferWithOffset: CHAR;
+        updateColorBufferForegroundWithOffset: CHAR;
+        updateColorBufferBackgroundWithOffset: CHAR;
+    BEGIN
+        x := 0;
+        y := 0;
+        WHILE y <| TERMINAL_HEIGHT DO
+            WHILE x <| TERMINAL_WIDTH DO
+                offset := y *| TERMINAL_WIDTH + x;
+                updateBufferWithOffset := GETCHAR(updateBufferPtr + offset);
+                IF updateBufferWithOffset THEN
+                    updateColorBufferForegroundWithOffset := GETCHAR(updateColorBufferForegroundPtr + offset);
+                    updateColorBufferBackgroundWithOffset := GETCHAR(updateColorBufferBackgroundPtr + offset);
+                    fg := COLORS[updateColorBufferForegroundWithOffset];
+                    bg := COLORS[updateColorBufferBackgroundWithOffset];
+                    DrawFontTileToBackground(updateBufferWithOffset, x *| 8, y *| 16, fg, bg);
+                    PUTCHAR(updateBufferPtr + offset, 0);
+                    PUTCHAR(updateColorBufferForegroundPtr + offset, 0);
+                    PUTCHAR(updateColorBufferBackgroundPtr + offset, 0);
+                END;
+                x := x + 1;
+            END;
+            y := y + 1;
+        END;
+    END;
+
+    PROCEDURE RedrawTerminalLine();
+    VAR x: INT;
+        y: INT;
+        fg: INT;
+        bg: INT;
+        offset: INT;
+        updateBufferWithOffset: CHAR;
+        updateColorBufferForegroundWithOffset: CHAR;
+        updateColorBufferBackgroundWithOffset: CHAR;
+    BEGIN
+        x := 0;
+        y := terminalY;
+        WHILE x <| TERMINAL_WIDTH DO
+            offset := y *| TERMINAL_WIDTH + x;
+            updateBufferWithOffset := GETCHAR(updateBufferPtr + offset);
+            IF updateBufferWithOffset THEN
+                updateColorBufferForegroundWithOffset := GETCHAR(updateColorBufferForegroundPtr + offset);
+                updateColorBufferBackgroundWithOffset := GETCHAR(updateColorBufferBackgroundPtr + offset);
+                fg := COLORS[updateColorBufferForegroundWithOffset];
+                bg := COLORS[updateColorBufferBackgroundWithOffset];
+                DrawFontTileToBackground(updateBufferWithOffset, x *| 8, y *| 16, fg, bg);
+                PUTCHAR(updateBufferPtr + offset, 0);
+                PUTCHAR(updateColorBufferForegroundPtr + offset, 0);
+                PUTCHAR(updateColorBufferBackgroundPtr + offset, 0);
+            END;
+            x := x + 1;
+        END;
+    END;
+
+    PROCEDURE PrintString(str: POINTER TO CHAR;);
+    BEGIN
+        WHILE str^ DO
+            PrintCharacter(str^);
+            str := str + 1;
+        END;
+    END;
+
+    PROCEDURE PrintCharacter(c: CHAR;);
+    VAR offset: INT;
+    BEGIN
+        IF c = 0 THEN
+            RETURN();
+        ELSIF c = 8 THEN
+            (* backspace *)
+            IF terminalX >| 0 THEN
+                terminalX := terminalX - 1;
+            END;
+        ELSIF c = 13 THEN
+            (* carriage return *)
+            RedrawTerminalLine();
+            terminalY := 0;
+        ELSIF c = 10 THEN
+            (* line feed *)
+            RedrawTerminal();
+            terminalX := 0;
+            terminalY := terminalY + 1;
+            IF terminalY >|= TERMINAL_HEIGHT THEN
+                ScrollTerminal();
+            END;
+        ELSIF c = 27 THEN
+            (* TODO: escape codes *)
+        ELSE
+            IF terminalX >|= TERMINAL_WIDTH THEN
+                RedrawTerminalLine();
+                terminalX := 0;
+                terminalY := terminalY + 1;
+            END;
+
+            IF terminalY >|= TERMINAL_HEIGHT THEN
+                ScrollTerminal();
+            END;
+
+            offset := terminalY *| TERMINAL_WIDTH + terminalX;
+            PUTCHAR(updateBufferPtr + offset, c);
+            PUTCHAR(updateColorBufferForegroundPtr + offset, DEFAULT_FOREGROUND_COLOR);
+            PUTCHAR(updateColorBufferBackgroundPtr + offset, DEFAULT_BACKGROUND_COLOR);
+            terminalX := terminalX + 1;
+        END;
+    END;
+
+    PROCEDURE ScrollTerminal();
+    BEGIN
+        (* TODO *)
+    END;
+END.

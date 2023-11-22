@@ -1,0 +1,43 @@
+(* kitsune syscall definitions for Okameron programs *)
+
+MODULE Kitsune;
+    ASM "kitsune.def.asm";
+
+    TYPE FileOrStream = RECORD
+        disk: CHAR;           (* file *)
+        firstSector: SHORT;   (* file *)
+        seekOffset: INT;      (* file and stream *)
+        fileSystemType: CHAR; (* 0x00 for RYFS, 0x01 for stream *)
+        readCall: INT;        (* stream *)
+        writeCall: INT;       (* stream *)
+        size: INT;            (* stream *)
+        reserved1: INT;       (* N/A *)
+        reserved2: INT;       (* N/A *)
+        reserved3: INT;       (* N/A *)
+    END;
+
+    TYPE Process = RECORD
+        id: INT;
+        instructionPtr: PTR;
+        stackPtr: PTR;
+        codeBlockPtr: PTR;
+        stackBlockPtr: PTR;
+        state: INT;
+    END;
+
+    EXTERN PROCEDURE Syscall: INT;
+
+    EXTERN PROCEDURE NewProcess: INT;
+    EXTERN PROCEDURE YieldProcess: INT;
+    EXTERN PROCEDURE EndProcess: INT;
+    EXTERN PROCEDURE MyProcess: INT;
+    EXTERN PROCEDURE GetProcess: INT;
+    EXTERN PROCEDURE Open: INT;
+    EXTERN PROCEDURE Seek: INT;
+    EXTERN PROCEDURE Tell: INT;
+    EXTERN PROCEDURE GetSize: INT;
+    EXTERN PROCEDURE Read: INT;
+    EXTERN PROCEDURE Write: INT;
+    EXTERN PROCEDURE Allocate: INT;
+    EXTERN PROCEDURE Free: INT;
+END.

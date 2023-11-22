@@ -1,0 +1,20 @@
+MODULE Init;
+    IMPORT Kitsune, Fox32ROM;
+
+    CONST BACKGROUND_COLOR = 0FF674764H;
+          TEXT_COLOR = 0FFFFFFFFH;
+
+    PROCEDURE Main();
+    VAR processId: INT;
+    BEGIN
+        WHILE 1 DO
+            processId := NewProcess("fbterm.fxf", 0);
+            IF processId = 0FFFFFFFFH THEN
+                DrawStrToBackground("init - could not start fbterm.fxf", 16, 464, TEXT_COLOR, BACKGROUND_COLOR);
+            END;
+            WHILE GetProcess(processId) DO
+                YieldProcess();
+            END;
+        END;
+    END;
+END.
