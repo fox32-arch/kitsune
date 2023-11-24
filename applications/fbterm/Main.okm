@@ -33,6 +33,7 @@ MODULE FbTerm;
         terminalY: INT;
 
     PROCEDURE Main();
+    VAR event: ARRAY 8 OF INT;
     BEGIN
         onScreenBufferPtr := Allocate(2400);
         onScreenColorBufferForegroundPtr := Allocate(2400);
@@ -45,10 +46,15 @@ MODULE FbTerm;
         running := 1;
 
         PrintString("hello world!!!");
-        RedrawTerminal();
+        RedrawTerminalLine();
 
         WHILE running DO
-            (* TODO: yeag *)
+            GetNextEvent(PTROF(event));
+            IF event[0] = PTROF(EVENT_TYPE_KEY_DOWN) THEN
+                PrintCharacter(ScancodeToAscii(event[1]));
+                RedrawTerminalLine();
+            END;
+
             YieldProcess();
         END;
 
@@ -76,15 +82,18 @@ MODULE FbTerm;
             WHILE x <| TERMINAL_WIDTH DO
                 offset := y *| TERMINAL_WIDTH + x;
                 updateBufferWithOffset := GETCHAR(updateBufferPtr + offset);
-                IF updateBufferWithOffset THEN
+                IF ((GETCHAR(onScreenBufferPtr + offset) # updateBufferWithOffset) OR
+                    (GETCHAR(onScreenColorBufferForegroundPtr + offset) # GETCHAR(updateColorBufferForegroundPtr + offset)) OR
+                    (GETCHAR(onScreenColorBufferBackgroundPtr + offset) # GETCHAR(updateColorBufferBackgroundPtr + offset)))
+                THEN
                     updateColorBufferForegroundWithOffset := GETCHAR(updateColorBufferForegroundPtr + offset);
                     updateColorBufferBackgroundWithOffset := GETCHAR(updateColorBufferBackgroundPtr + offset);
                     fg := COLORS[updateColorBufferForegroundWithOffset];
                     bg := COLORS[updateColorBufferBackgroundWithOffset];
                     DrawFontTileToBackground(updateBufferWithOffset, x *| 8, y *| 16, fg, bg);
-                    PUTCHAR(updateBufferPtr + offset, 0);
-                    PUTCHAR(updateColorBufferForegroundPtr + offset, 0);
-                    PUTCHAR(updateColorBufferBackgroundPtr + offset, 0);
+                    PUTCHAR(onScreenBufferPtr + offset, updateBufferWithOffset);
+                    PUTCHAR(onScreenColorBufferForegroundPtr + offset, updateColorBufferForegroundWithOffset);
+                    PUTCHAR(onScreenColorBufferBackgroundPtr + offset, updateColorBufferBackgroundWithOffset);
                 END;
                 x := x + 1;
             END;
@@ -107,15 +116,18 @@ MODULE FbTerm;
         WHILE x <| TERMINAL_WIDTH DO
             offset := y *| TERMINAL_WIDTH + x;
             updateBufferWithOffset := GETCHAR(updateBufferPtr + offset);
-            IF updateBufferWithOffset THEN
+            IF ((GETCHAR(onScreenBufferPtr + offset) # updateBufferWithOffset) OR
+                (GETCHAR(onScreenColorBufferForegroundPtr + offset) # GETCHAR(updateColorBufferForegroundPtr + offset)) OR
+                (GETCHAR(onScreenColorBufferBackgroundPtr + offset) # GETCHAR(updateColorBufferBackgroundPtr + offset)))
+            THEN
                 updateColorBufferForegroundWithOffset := GETCHAR(updateColorBufferForegroundPtr + offset);
                 updateColorBufferBackgroundWithOffset := GETCHAR(updateColorBufferBackgroundPtr + offset);
                 fg := COLORS[updateColorBufferForegroundWithOffset];
                 bg := COLORS[updateColorBufferBackgroundWithOffset];
                 DrawFontTileToBackground(updateBufferWithOffset, x *| 8, y *| 16, fg, bg);
-                PUTCHAR(updateBufferPtr + offset, 0);
-                PUTCHAR(updateColorBufferForegroundPtr + offset, 0);
-                PUTCHAR(updateColorBufferBackgroundPtr + offset, 0);
+                PUTCHAR(onScreenBufferPtr + offset, updateBufferWithOffset);
+                PUTCHAR(onScreenColorBufferForegroundPtr + offset, updateColorBufferForegroundWithOffset);
+                PUTCHAR(onScreenColorBufferBackgroundPtr + offset, updateColorBufferBackgroundWithOffset);
             END;
             x := x + 1;
         END;
@@ -173,7 +185,24 @@ MODULE FbTerm;
     END;
 
     PROCEDURE ScrollTerminal();
+    VAR i: INT;
+        lastLineOffset: INT;
     BEGIN
-        (* TODO *)
+        i := TERMINAL_WIDTH;
+        WHILE i <| TERMINAL_WIDTH *| TERMINAL_HEIGHT DO
+            CopyMemoryChar(onScreenBufferPtr + i, updateBufferPtr + i - TERMINAL_WIDTH, TERMINAL_WIDTH);
+            CopyMemoryChar(onScreenColorBufferForegroundPtr + i, updateColorBufferForegroundPtr + i - TERMINAL_WIDTH, TERMINAL_WIDTH);
+            CopyMemoryChar(onScreenColorBufferBackgroundPtr + i, updateColorBufferBackgroundPtr + i - TERMINAL_WIDTH, TERMINAL_WIDTH);
+            i := i + TERMINAL_WIDTH;
+        END;
+
+        i := 0;
+        lastLineOffset := TERMINAL_WIDTH *| (TERMINAL_HEIGHT - 1);
+        WHILE i <| TERMINAL_WIDTH DO
+            PUTCHAR(updateBufferPtr + lastLineOffset + i, 0);
+            PUTCHAR(updateColorBufferForegroundPtr + lastLineOffset + i, 0);
+            PUTCHAR(updateColorBufferBackgroundPtr + lastLineOffset + i, 0);
+            i := i + 1;
+        END;
     END;
 END.
