@@ -1,5 +1,5 @@
 MODULE Process;
-    IMPORT Fox32ROM, Allocator, FXF, VFS;
+    IMPORT Fox32ROM, Allocator, Debug, FXF, VFS;
 
     ASM "Process.asm";
 
@@ -111,6 +111,10 @@ MODULE Process;
         (* upon the next round of the scheduler, it will see that this process is *)
         (* dead, and will clean up its memory *)
         tempProcess^.state := STATE_DEAD;
+        (* enter the scheduler *)
+        YieldProcess();
+        (* we should never reach this point, if we do then something is very wrong *)
+        Unreachable();
     END;
 
     PROCEDURE MyProcess(): INT;
@@ -125,7 +129,6 @@ MODULE Process;
 
     EXTERN PROCEDURE YieldProcess: INT;
     EXTERN PROCEDURE SwitchProcess: INT;
-    EXTERN PROCEDURE BreakPoint: INT;
 
     PROCEDURE Scheduler();
     VAR i: INT;
@@ -155,8 +158,10 @@ MODULE Process;
                 SwitchProcess(tempProcess);
 
                 (* once we reach this point, the process has switched back here *)
-                (* mark it as runnable *)
-                tempProcess^.state := STATE_RUNNABLE;
+                (* mark it as runnable if it is currently running *)
+                IF tempProcess^.state = STATE_RUNNING THEN
+                    tempProcess^.state := STATE_RUNNABLE;
+                END;
                 i := i + 1;
             END;
         END;

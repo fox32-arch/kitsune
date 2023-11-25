@@ -53,6 +53,10 @@ MODULE FbTerm;
             IF event[0] = PTROF(EVENT_TYPE_KEY_DOWN) THEN
                 PrintCharacter(ScancodeToAscii(event[1]));
                 RedrawTerminalLine();
+                IF event[1] = 1 THEN
+                    (* TODO: remove this later *)
+                    running := 0;
+                END;
             END;
 
             YieldProcess();

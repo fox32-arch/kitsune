@@ -14,6 +14,7 @@ all: kitsune.img romdisk.img
 KENREL_INPUT_FILES = \
 	kernel/Main.okm \
 	kernel/Allocator.okm \
+	kernel/Debug.okm \
 	kernel/FXF.okm \
 	kernel/Process.okm \
 	kernel/RYFS.okm \

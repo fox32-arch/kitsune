@@ -106,7 +106,3 @@ SwitchProcess_ret:
     pop r31
     pop rfp
     ret
-
-BreakPoint:
-    brk
-    ret

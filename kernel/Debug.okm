@@ -1,0 +1,12 @@
+MODULE Debug;
+    IMPORT Fox32ROM;
+
+    ASM "Debug.asm";
+
+    EXTERN PROCEDURE BreakPoint: INT;
+
+    PROCEDURE Unreachable();
+    BEGIN
+        Panic("Entered unreachable code!\n");
+    END;
+END.
