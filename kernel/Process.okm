@@ -32,7 +32,7 @@ MODULE Process;
         currentProcess := 0;
     END;
 
-    PROCEDURE NewProcess(fileName: POINTER TO CHAR; diskId: INT;): INT;
+    PROCEDURE NewProcess(fileName: POINTER TO CHAR;): INT;
     VAR id: INT;
         fileStruct: FileOrStream;
         fileSize: INT;
@@ -49,7 +49,7 @@ MODULE Process;
         END;
 
         (* open the file and get its size *)
-        IF Open(fileName, diskId, PTROF(fileStruct)) = 0 THEN
+        IF Open(fileName, PTROF(fileStruct)) = 0 THEN
             RETURN(0FFFFFFFFH);
         END;
         fileSize := GetSize(PTROF(fileStruct));

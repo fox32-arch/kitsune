@@ -18,13 +18,28 @@ MODULE VFS;
     END;
 
     VAR convertFileNameTemp: ARRAY 12 OF CHAR;
+        bootDisk: CHAR;
 
-    PROCEDURE Open(fileName: POINTER TO CHAR; diskId: CHAR; struct: POINTER TO FileOrStream;): INT;
+    PROCEDURE SetBootDisk(disk: CHAR;);
+    BEGIN
+        bootDisk := disk;
+    END;
+
+    PROCEDURE Open(fileName: POINTER TO CHAR; struct: POINTER TO FileOrStream;): INT;
     VAR convertedFileName: POINTER TO CHAR;
+        diskId: CHAR;
     BEGIN
         IF fileName^ = 58 THEN
             (* this is a named stream *)
             RETURN(OpenStream(fileName, struct));
+        END;
+
+        IF GETCHAR(fileName + 1) = 58 THEN
+            (* a disk id was prefixed *)
+            diskId := fileName^ - 48;
+            fileName := fileName + 2;
+        ELSE
+            diskId := bootDisk;
         END;
 
         (* convert the filename to RYFS's internal 8.3 format *)

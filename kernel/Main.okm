@@ -4,16 +4,17 @@ MODULE Kernel;
     CONST BACKGROUND_COLOR = 0FF674764H;
           TEXT_COLOR = 0FFFFFFFFH;
 
-    PROCEDURE Main();
+    PROCEDURE Main(bootDisk: CHAR;);
     BEGIN
         FillBackground(BACKGROUND_COLOR);
         DrawStrToBackground("kitsune", 16, 464, TEXT_COLOR, BACKGROUND_COLOR);
 
+        SetBootDisk(bootDisk);
         InitializeAllocator();
         InstallSyscallHandler();
         InitializeScheduler();
 
-        NewProcess("init.fxf", 0);
+        NewProcess("init.fxf");
 
         Scheduler();
     END;

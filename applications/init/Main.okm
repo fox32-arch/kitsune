@@ -8,7 +8,7 @@ MODULE Init;
     VAR processId: INT;
     BEGIN
         WHILE 1 DO
-            processId := NewProcess("fbterm.fxf", 0);
+            processId := NewProcess("fbterm.fxf");
             IF processId = 0FFFFFFFFH THEN
                 DrawStrToBackground("init - could not start fbterm.fxf", 16, 464, TEXT_COLOR, BACKGROUND_COLOR);
             END;
