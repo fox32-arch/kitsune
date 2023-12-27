@@ -32,7 +32,7 @@ MODULE FbTerm;
         terminalX: INT;
         terminalY: INT;
 
-    PROCEDURE Main();
+    PROCEDURE Main(ioPtr: POINTER TO FileOrStream; argument: INT; table: POINTER TO POINTER TO CHAR;);
     VAR event: ARRAY 8 OF INT;
     BEGIN
         onScreenBufferPtr := Allocate(2400);

@@ -10,7 +10,9 @@ Syscall:
 
 ; PROCEDURE NewProcess(
 ;    fileName: POINTER TO CHAR;
-;    diskId: INT;
+;    ioPtr: POINTER TO FileOrStream;
+;    argument: INT;
+;    table: POINTER TO POINTER TO CHAR;
 ; ): INT;
 NewProcess:
     mov r7, 0

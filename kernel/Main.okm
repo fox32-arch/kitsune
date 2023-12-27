@@ -14,7 +14,7 @@ MODULE Kernel;
         InstallSyscallHandler();
         InitializeScheduler();
 
-        NewProcess("init.fxf");
+        NewProcess("init.fxf", 0, 0, 0);
 
         Scheduler();
     END;

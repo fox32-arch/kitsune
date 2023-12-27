@@ -32,7 +32,12 @@ MODULE Process;
         currentProcess := 0;
     END;
 
-    PROCEDURE NewProcess(fileName: POINTER TO CHAR;): INT;
+    PROCEDURE NewProcess(
+        fileName: POINTER TO CHAR;
+        ioPtr: POINTER TO FileOrStream;
+        argument: INT;
+        table: POINTER TO POINTER TO CHAR;
+    ): INT;
     VAR id: INT;
         fileStruct: FileOrStream;
         fileSize: INT;
@@ -70,6 +75,18 @@ MODULE Process;
             RETURN(0FFFFFFFFH);
         END;
         stackPtr := stackBlockPtr + 0FFFFH;
+
+        (* push the table poiner to the new process's stack *)
+        stackPtr := stackPtr - 4;
+        PUTINT(stackPtr, table);
+
+        (* push the argument to the new process's stack *)
+        stackPtr := stackPtr - 4;
+        PUTINT(stackPtr, argument);
+
+        (* push the io pointer to the new process's stack *)
+        stackPtr := stackPtr - 4;
+        PUTINT(stackPtr, ioPtr);
 
         (* allocate a block of memory for the process record *)
         processPtr := Allocate(PROCESS_SIZE);
