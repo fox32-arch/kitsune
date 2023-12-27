@@ -208,5 +208,8 @@ MODULE FbTerm;
             PUTCHAR(updateColorBufferBackgroundPtr + lastLineOffset + i, 0);
             i := i + 1;
         END;
+
+        terminalY := TERMINAL_HEIGHT - 1;
+        RedrawTerminal();
     END;
 END.
