@@ -1,5 +1,5 @@
 MODULE Process;
-    IMPORT Fox32ROM, Allocator, Debug, FXF, VFS;
+    IMPORT Allocator, Debug, FXF, VFS;
 
     ASM "Process.asm";
 
