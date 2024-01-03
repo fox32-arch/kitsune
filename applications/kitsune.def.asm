@@ -30,12 +30,12 @@ EndProcess:
     mov r7, 2
     rjmp Syscall
 
-; PROCEDURE EndProcess(): INT;
+; PROCEDURE MyProcess(): INT;
 MyProcess:
     mov r7, 3
     rjmp Syscall
 
-; PROCEDURE EndProcess(
+; PROCEDURE GetProcess(
 ;    processId: INT;
 ; ): POINTER TO Process;
 GetProcess:
