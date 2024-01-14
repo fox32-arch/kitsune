@@ -44,7 +44,6 @@ GetProcess:
 
 ; PROCEDURE Open(
 ;    fileName: POINTER TO CHAR;
-;    diskId: CHAR;
 ;    struct: POINTER TO FileOrStream;
 ; ): INT;
 Open:
