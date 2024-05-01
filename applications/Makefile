@@ -1,6 +1,7 @@
 APPLICATIONS = \
 	init \
-	fbterm
+	fbterm \
+	sh
 
 OUTPUT_FILES = $(foreach app,$(APPLICATIONS),$(app)/$(app).fxf)
 

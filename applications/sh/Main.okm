@@ -1,0 +1,35 @@
+MODULE Sh;
+    IMPORT Kitsune, Fox32ROM;
+
+    VAR running: CHAR;
+        terminalIOPtr: POINTER TO FileOrStream;
+
+    PROCEDURE Main(ioPtr: POINTER TO FileOrStream; argument: INT; table: POINTER TO POINTER TO CHAR;);
+    BEGIN
+        IF ioPtr = 0 THEN
+            RETURN();
+        END;
+
+        running := 1;
+        terminalIOPtr := ioPtr;
+
+        PrintChar(65);
+        PrintChar(10);
+        PrintString("Hello world!\n");
+        WHILE running DO
+            YieldProcess();
+        END;
+    END;
+
+    PROCEDURE PrintChar(c: CHAR;);
+    VAR buffer: CHAR;
+    BEGIN
+        buffer := c;
+        Write(1, terminalIOPtr, PTROF(buffer));
+    END;
+
+    PROCEDURE PrintString(str: POINTER TO CHAR;);
+    BEGIN
+        Write(StringLength(str), terminalIOPtr, str);
+    END;
+END.

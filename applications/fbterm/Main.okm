@@ -20,6 +20,7 @@ MODULE FbTerm;
 
     VAR running: CHAR;
         shellProcessId: INT;
+        shellIOStream: FileOrStream;
 
         (* 80x30 *)
         onScreenBufferPtr: POINTER TO ARRAY 2400 OF CHAR;
@@ -32,6 +33,9 @@ MODULE FbTerm;
         terminalX: INT;
         terminalY: INT;
 
+        keyBuffer: CHAR;
+        keyAck: CHAR;
+
     PROCEDURE Main(ioPtr: POINTER TO FileOrStream; argument: INT; table: POINTER TO POINTER TO CHAR;);
     VAR event: ARRAY 8 OF INT;
     BEGIN
@@ -43,20 +47,33 @@ MODULE FbTerm;
         updateColorBufferBackgroundPtr := Allocate(2400);
         terminalX := 0;
         terminalY := 0;
+
+        shellIOStream.fileSystemType := 1;
+        shellIOStream.readCall := PTROF(GetKey);
+        shellIOStream.writeCall := PTROF(PrintIncomingCharacter);
+
         running := 1;
 
-        PrintString("hello world!!!");
-        RedrawTerminalLine();
+        PrintString("FbTerm\n");
+
+        shellProcessId := NewProcess("sh.fxf", PTROF(shellIOStream), 0, 0);
+        IF shellProcessId = 0FFFFFFFFH THEN
+            PrintString("could not start sh.fxf\n");
+        ELSE
+            PrintString("running sh.fxf\n");
+        END;
 
         WHILE running DO
             GetNextEvent(PTROF(event));
             IF event[0] = PTROF(EVENT_TYPE_KEY_DOWN) THEN
-                PrintCharacter(ScancodeToAscii(event[1]));
-                RedrawTerminalLine();
-                IF event[1] = 1 THEN
-                    (* TODO: remove this later *)
-                    running := 0;
-                END;
+                KeyDown(event[1]);
+            ELSIF event[0] = PTROF(EVENT_TYPE_KEY_UP) THEN
+                KeyUp(event[1]);
+            END;
+
+            IF keyAck # 0 THEN
+                keyBuffer := 0;
+                keyAck := 0;
             END;
 
             YieldProcess();
@@ -70,6 +87,32 @@ MODULE FbTerm;
         Free(updateColorBufferBackgroundPtr);
     END;
 
+    PROCEDURE GetKey(): CHAR;
+    BEGIN
+        keyAck := 1;
+        RETURN(keyBuffer);
+    END;
+
+    PROCEDURE KeyDown(key: CHAR;);
+    BEGIN
+        IF key = PTROF(KEY_CTRL) THEN
+            RETURN();
+        ELSIF (key = PTROF(KEY_LSHIFT)) OR (key = PTROF(KEY_RSHIFT)) THEN
+            ShiftPressed();
+        ELSIF key = PTROF(KEY_CAPS) THEN
+            CapsPressed();
+        ELSE
+            keyBuffer := ScancodeToAscii(key);
+        END;
+    END;
+
+    PROCEDURE KeyUp(key: CHAR;);
+    BEGIN
+        IF (key = PTROF(KEY_LSHIFT)) OR (key = PTROF(KEY_RSHIFT)) THEN
+            ShiftReleased();
+        END;
+    END;
+
     PROCEDURE RedrawTerminal();
     VAR x: INT;
         y: INT;
@@ -80,9 +123,9 @@ MODULE FbTerm;
         updateColorBufferForegroundWithOffset: CHAR;
         updateColorBufferBackgroundWithOffset: CHAR;
     BEGIN
-        x := 0;
         y := 0;
         WHILE y <| TERMINAL_HEIGHT DO
+            x := 0;
             WHILE x <| TERMINAL_WIDTH DO
                 offset := y *| TERMINAL_WIDTH + x;
                 updateBufferWithOffset := GETCHAR(updateBufferPtr + offset);
@@ -145,6 +188,11 @@ MODULE FbTerm;
         END;
     END;
 
+    PROCEDURE PrintIncomingCharacter(ptr: POINTER TO CHAR;);
+    BEGIN
+        PrintCharacter(ptr^);
+    END;
+
     PROCEDURE PrintCharacter(c: CHAR;);
     VAR offset: INT;
     BEGIN
@@ -161,7 +209,7 @@ MODULE FbTerm;
             terminalY := 0;
         ELSIF c = 10 THEN
             (* line feed *)
-            RedrawTerminal();
+            RedrawTerminalLine();
             terminalX := 0;
             terminalY := terminalY + 1;
             IF terminalY >|= TERMINAL_HEIGHT THEN

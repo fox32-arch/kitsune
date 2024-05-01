@@ -76,7 +76,7 @@ MODULE Process;
         END;
         stackPtr := stackBlockPtr + 0FFFFH;
 
-        (* push the table poiner to the new process's stack *)
+        (* push the table pointer to the new process's stack *)
         stackPtr := stackPtr - 4;
         PUTINT(stackPtr, table);
 

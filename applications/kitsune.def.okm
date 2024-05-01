@@ -15,8 +15,7 @@ MODULE Kitsune;
         reserved2: INT;       (* N/A *)
         reserved3: INT;       (* N/A *)
     END;
-
-    TYPE Process = RECORD
+    Process = RECORD
         id: INT;
         instructionPtr: PTR;
         stackPtr: PTR;
@@ -26,6 +25,7 @@ MODULE Kitsune;
     END;
 
     EXTERN PROCEDURE Syscall: INT;
+    EXTERN PROCEDURE BreakPoint: INT;
 
     EXTERN PROCEDURE NewProcess: INT;
     EXTERN PROCEDURE YieldProcess: INT;

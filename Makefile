@@ -32,11 +32,13 @@ base_image/kernel.fxf: $(KENREL_INPUT_FILES) $(wildcard kernel/*.okm kernel/*/*.
 
 APPLICATIONS = \
 	base_image/init.fxf \
-	base_image/fbterm.fxf
+	base_image/fbterm.fxf \
+	base_image/sh.fxf
 
 APPLICATIONS_ROM = \
 	base_image/init.fxf \
-	base_image/fbterm.fxf
+	base_image/fbterm.fxf \
+	base_image/sh.fxf
 
 $(APPLICATIONS):
 	cd applications && $(MAKE)

@@ -8,6 +8,13 @@ Syscall:
     int 0x80
     ret
 
+; PROCEDURE BreakPoint(
+;    arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7: INT;
+; );
+BreakPoint:
+    brk
+    ret
+
 ; PROCEDURE NewProcess(
 ;    fileName: POINTER TO CHAR;
 ;    ioPtr: POINTER TO FileOrStream;
