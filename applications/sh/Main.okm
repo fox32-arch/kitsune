@@ -5,6 +5,7 @@ MODULE Sh;
         terminalIOPtr: POINTER TO FileOrStream;
 
     PROCEDURE Main(ioPtr: POINTER TO FileOrStream; argument: INT; table: POINTER TO POINTER TO CHAR;);
+    VAR buffer: CHAR;
     BEGIN
         IF ioPtr = 0 THEN
             RETURN();
@@ -17,6 +18,10 @@ MODULE Sh;
         PrintChar(10);
         PrintString("Hello world!\n");
         WHILE running DO
+            Read(1, terminalIOPtr, PTROF(buffer));
+            IF buffer # 0 THEN
+                PrintChar(buffer);
+            END;
             YieldProcess();
         END;
     END;

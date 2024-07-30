@@ -34,7 +34,6 @@ MODULE FbTerm;
         terminalY: INT;
 
         keyBuffer: CHAR;
-        keyAck: CHAR;
 
     PROCEDURE Main(ioPtr: POINTER TO FileOrStream; argument: INT; table: POINTER TO POINTER TO CHAR;);
     VAR event: ARRAY 8 OF INT;
@@ -71,11 +70,6 @@ MODULE FbTerm;
                 KeyUp(event[1]);
             END;
 
-            IF keyAck # 0 THEN
-                keyBuffer := 0;
-                keyAck := 0;
-            END;
-
             YieldProcess();
         END;
 
@@ -88,9 +82,11 @@ MODULE FbTerm;
     END;
 
     PROCEDURE GetKey(): CHAR;
+    VAR temp: CHAR;
     BEGIN
-        keyAck := 1;
-        RETURN(keyBuffer);
+        temp := keyBuffer;
+        keyBuffer := 0;
+        RETURN(temp);
     END;
 
     PROCEDURE KeyDown(key: CHAR;);
